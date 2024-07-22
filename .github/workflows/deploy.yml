@@ -29,4 +29,9 @@ jobs:
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
+          mkdir -p ~/.ssh
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+          rsync -avz --exclude=".git/" --exclude="vendor/" --exclude="node_modules/" ./ $SSH_USERNAME@$SSH_HOST:$DEPLOY_PATH
           ssh $SSH_USERNAME@$SSH_HOST "cd $DEPLOY_PATH && composer install --no-dev && php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache"
